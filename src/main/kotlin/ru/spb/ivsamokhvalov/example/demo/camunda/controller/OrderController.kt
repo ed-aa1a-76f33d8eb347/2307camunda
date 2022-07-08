@@ -6,6 +6,7 @@ import org.jeasy.random.EasyRandomParameters
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateItemsRequest
@@ -32,8 +33,13 @@ class OrderController(
         return mainService.getOrder(orderId)
     }
 
+    @PostMapping("/create")
+    fun createOrder(@RequestBody request: CreateOrderRequest): OrderWithPosting {
+        return mainService.createOrder(request)
+    }
+
     @PostMapping("/createRandom")
-    fun create(): OrderWithPosting {
+    fun createRandom(): OrderWithPosting {
         return mainService.createOrder(CreateOrderRequest(
             postings = IntRange(1, 3).map {
                 CreatePostingRequest(

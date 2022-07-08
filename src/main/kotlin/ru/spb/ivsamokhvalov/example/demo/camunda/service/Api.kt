@@ -50,6 +50,7 @@ enum class CurrencyCode {
     UNDEFINED,
     RUB,
     USD,
+    EUR
 }
 
 data class CreateOrderRequest(

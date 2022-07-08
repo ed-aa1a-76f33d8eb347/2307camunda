@@ -16,6 +16,8 @@ interface MainService {
 
     fun updateOrder(request: UpdateOrderRequest): Order
     fun updatePosting(request: UpdatePostingRequest): Posting
+
+    fun recalculateOrderStatus(orderId: Long)
 }
 
 
@@ -102,5 +104,27 @@ class MainServiceImpl(
             posting.price = newPrice.price
         }
         return StubPosting(postingRepository.save(posting))
+    }
+
+    override fun recalculateOrderStatus(orderId: Long) {
+        val order = orderRepository.findById(orderId).get()
+        val postings = postingRepository.findByOrderIdOrderByPostingIdAsc(orderId)
+        val newStatus : OrderStatus = calculateOrderStatus(postings)
+        if (newStatus == order.orderStatus) return
+        orderRepository.save(order.also { it.orderStatus = newStatus })
+    }
+
+    private fun calculateOrderStatus(postings: List<PostingEntity>): OrderStatus {
+        val statuses = postings.map { it.postingStatus }.distinct()
+        return when {
+            statuses.all { it == PostingStatus.CANCELLED } -> OrderStatus.CANCELLED
+            statuses.all { it in setOf(PostingStatus.CANCELLED, PostingStatus.RECEIVED) } -> OrderStatus.RECEIVED
+            statuses.any { it == PostingStatus.AWAITING_IN_PICKUP } -> OrderStatus.AWAITING_IN_PICKUP
+            statuses.any { it == PostingStatus.IN_DELIVERY } -> OrderStatus.IN_DELIVERY
+            statuses.any { it == PostingStatus.IN_DELIVERY } -> OrderStatus.IN_DELIVERY
+            statuses.any { it == PostingStatus.IN_PROCESS } -> OrderStatus.IN_PROCESS
+            statuses.any { it == PostingStatus.AWAITING_PAYMENT } -> OrderStatus.CREATED
+            else -> throw IllegalArgumentException("Невозможно высчитать статус ордера")
+        }
     }
 }
