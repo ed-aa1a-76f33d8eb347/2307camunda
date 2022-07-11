@@ -1,6 +1,7 @@
 package ru.spb.ivsamokhvalov.example.demo.camunda.service
 
 import java.math.BigDecimal
+import mu.KLogging
 import org.springframework.stereotype.Service
 import ru.spb.ivsamokhvalov.example.demo.camunda.controller.ItemEntity
 import ru.spb.ivsamokhvalov.example.demo.camunda.controller.ItemRepository
@@ -12,109 +13,53 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingRepository
 interface MainService {
     fun createOrder(request: CreateOrderRequest): OrderWithPosting
     fun getOrder(orderId: Long): OrderWithPosting
-    fun getPosting(postingId: Long): Posting
 
-    fun updateOrder(request: UpdateOrderRequest): Order
-    fun updatePosting(request: UpdatePostingRequest): Posting
+//    fun updateOrder(request: UpdateOrderRequest): Order
 
     fun recalculateOrderStatus(orderId: Long)
+
+    fun recalculateOrderPrice(orderId: Long)
 }
 
-
-//interface OrderService {
-//    fun createOrder(): Order
-//    fun getOrder(orderId: Long): OrderWithPosting
-//    fun updateOrder(request: UpdateOrderRequest): Order
-//}
-//
-//interface PostingService {
-//    fun createPosting(): Posting
-//    fun getPosting(postingId: Long): Posting
-//    fun updatePosting(request: UpdatePostingRequest): Posting
-//}
 
 
 @Service
 class MainServiceImpl(
-    private val orderRepository: OrderRepository,
-    private val postingRepository: PostingRepository,
-    private val itemRepository: ItemRepository,
+    private val orderService: OrderService,
+    private val postingService: PostingService,
 ) : MainService {
     override fun createOrder(request: CreateOrderRequest): OrderWithPosting {
-        val order = orderRepository.save(OrderEntity())
-        request.postings.onEach {
-            val price = it.items.sumOf { item -> item.price * BigDecimal(item.qty) }
-            val posting = postingRepository.save(PostingEntity(orderId = order.orderId!!, price = price, currency = it.currencyCode))
-            it.items.onEach { p ->
-                itemRepository.save(
-                    ItemEntity(
-                        skuId = p.skuId,
-                        qty = p.qty,
-                        price = p.price,
-                        postingId = posting.postingId!!
-                    )
-                )
-            }
-        }
-        return getOrder(order.orderId!!)
+        val order = orderService.createOrder(request)
+        postingService.createPostings(order.orderId, request.postings)
+        return getOrder(order.orderId)
     }
 
     override fun getOrder(orderId: Long): OrderWithPosting {
-        val order = orderRepository.findById(orderId).get()
-        val postings = postingRepository.findByOrderIdOrderByPostingIdAsc(orderId)
-        return OrderWithPosting(order, postings.map { getPosting(it.postingId!!) })
-    }
-
-    override fun getPosting(postingId: Long): Posting {
-        val posting = postingRepository.findById(postingId).get()
-
-        return StubPosting(
-            postingId = posting.postingId!!,
-            orderId = posting.orderId,
-            items = getItemsByPostingId(posting.postingId),
-            currency = CurrencyPrice(posting.price, posting.currency),
-            postingStatus = posting.postingStatus
-        )
-    }
-
-    fun getItemsByPostingId(postingId: Long): List<Item> {
-        val items = itemRepository.findByPostingIdOrderByItemIdAsc(postingId)
-        return items.map { StubItem(itemId = it.itemId, skuId = it.skuId, qty = it.qty, price = it.price) }
-    }
-
-    override fun updateOrder(request: UpdateOrderRequest): Order {
-        val order = orderRepository.findById(request.orderId).get()
-        request.orderStatus?.let { newStatus ->
-            order.orderStatus = newStatus
-        }
-        request.currency?.let { newPrice ->
-            order.price = newPrice.price
-            order.currency = newPrice.currency
-        }
-        return orderRepository.save(order)
-    }
-
-    override fun updatePosting(request: UpdatePostingRequest): Posting {
-        val posting = postingRepository.findById(request.postingId).get()
-        request.status?.let { newStatus ->
-            posting.postingStatus = newStatus
-        }
-        request.currency?.let { newPrice ->
-            posting.currency = newPrice.currency
-            posting.price = newPrice.price
-        }
-        return StubPosting(postingRepository.save(posting))
+        val order = orderService.getOrder(orderId)
+        val postings = postingService.getPostingByOrderId(orderId)
+        return OrderWithPosting(order, postings)
     }
 
     override fun recalculateOrderStatus(orderId: Long) {
-        val order = orderRepository.findById(orderId).get()
-        val postings = postingRepository.findByOrderIdOrderByPostingIdAsc(orderId)
-        val newStatus : OrderStatus = calculateOrderStatus(postings)
+        val order = orderService.getOrder(orderId)
+        val postings = postingService.getPostingByOrderId(orderId)
+        val newStatus: OrderStatus = calculateOrderStatus(postings)
         if (newStatus == order.orderStatus) return
-        orderRepository.save(order.also { it.orderStatus = newStatus })
+        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = newStatus))
     }
 
-    private fun calculateOrderStatus(postings: List<PostingEntity>): OrderStatus {
+    override fun recalculateOrderPrice(orderId: Long) {
+        val order = orderService.getOrder(orderId)
+        val postings = postingService.getPostingByOrderId(orderId)
+        val distinctCurrencies = postings.filter { it.postingStatus != PostingStatus.CANCELLED }.map { it.currency.currency }.distinct()
+        require(distinctCurrencies.size == 1) {
+            "Перед пересчетом стоимости заказа, все валюты постингов должны быть сделаны одинаковыми"
+        }
+        val orderPrice = postings.filter { it.postingStatus != PostingStatus.CANCELLED }.sumOf { it.currency.price }
+        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, currency = CurrencyPrice(orderPrice, distinctCurrencies.single())))
+    }
+
+    private fun calculateOrderStatus(postings: List<Posting>): OrderStatus {
         val statuses = postings.map { it.postingStatus }.distinct()
         return when {
             statuses.all { it == PostingStatus.CANCELLED } -> OrderStatus.CANCELLED

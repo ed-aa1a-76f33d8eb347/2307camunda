@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingEntity
 
 interface Order {
-    val orderId: Long?
+    val orderId: Long
     val orderStatus: OrderStatus
 }
 
@@ -24,7 +24,7 @@ data class StubPosting(
     override val postingStatus: PostingStatus,
 ) : Posting {
     constructor(entity: PostingEntity) : this(
-        entity.postingId!!,
+        entity.postingId,
         entity.orderId,
         CurrencyPrice(entity.price ?: BigDecimal.ZERO, entity.currency),
         emptyList(),
@@ -80,10 +80,27 @@ data class CreateItemsRequest(
     val qty: Int,
 )
 
-data class CurrencyPrice(
+class CurrencyPrice(
     val price: BigDecimal,
     val currency: CurrencyCode,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CurrencyPrice
+
+        if (currency != other.currency) return false
+        return price.compareTo(other.price) == 0
+    }
+
+    override fun hashCode(): Int {
+        var result = price.hashCode()
+        result = 31 * result + currency.hashCode()
+        return result
+    }
+}
+
 
 data class UpdateOrderRequest(
     val orderId: Long,

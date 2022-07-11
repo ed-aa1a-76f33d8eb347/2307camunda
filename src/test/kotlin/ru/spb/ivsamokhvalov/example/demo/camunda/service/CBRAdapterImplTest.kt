@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import java.math.BigDecimal
 import org.junit.jupiter.api.Test
 
 internal class CBRAdapterImplTest {
@@ -24,6 +25,15 @@ internal class CBRAdapterImplTest {
         println("End")
         result.valutes.onEach { println(it.convertedNominal) }
 
+    }
+
+
+    @Test
+     fun testCompareBigDecimal() {
+        val a = CurrencyPrice(BigDecimal("2"), CurrencyCode.RUB)
+        val b = CurrencyPrice(BigDecimal("2.0"), CurrencyCode.RUB)
+        println(a == b)
+        println(a.price.compareTo(b.price))
     }
 
     companion object {

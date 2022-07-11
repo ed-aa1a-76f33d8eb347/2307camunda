@@ -14,15 +14,20 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateOrderRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreatePostingRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyCode
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.MainService
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderWithPosting
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.UpdateOrderRequest
 
 @RestController
 @RequestMapping("/order")
 class OrderController(
     private val mainService: MainService,
-) {
+    private val orderService: OrderService,
+    private val postingService: PostingService,
+
+    ) {
 
     private val easyRandom = EasyRandom(EasyRandomParameters().also {
         it.seed = System.currentTimeMillis()
@@ -58,7 +63,7 @@ class OrderController(
 
     @PostMapping("/updateStatus")
     fun updateOrderStatus(orderId: Long, newStatus: OrderStatus): OrderWithPosting {
-        mainService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = newStatus))
+        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = newStatus))
         return mainService.getOrder(orderId)
     }
 }
