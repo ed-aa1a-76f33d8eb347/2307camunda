@@ -3,3 +3,4 @@ springdoc:
     path: /docs
 currency:
   defaultCode: USD
+  mock: true

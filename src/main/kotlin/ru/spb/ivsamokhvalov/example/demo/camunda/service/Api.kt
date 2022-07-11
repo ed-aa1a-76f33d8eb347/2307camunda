@@ -12,7 +12,7 @@ interface Posting {
     val postingId: Long
     val orderId: Long
     val currency: CurrencyPrice
-    val items:  List<Item>
+    val items: List<Item>
     val postingStatus: PostingStatus
 }
 
@@ -21,9 +21,15 @@ data class StubPosting(
     override val orderId: Long,
     override val currency: CurrencyPrice,
     override val items: List<Item>,
-    override val postingStatus: PostingStatus
+    override val postingStatus: PostingStatus,
 ) : Posting {
-    constructor(entity: PostingEntity): this(entity.postingId!!, entity.orderId, CurrencyPrice(entity.price ?: BigDecimal.ZERO, entity.currency), emptyList(), entity.postingStatus)
+    constructor(entity: PostingEntity) : this(
+        entity.postingId!!,
+        entity.orderId,
+        CurrencyPrice(entity.price ?: BigDecimal.ZERO, entity.currency),
+        emptyList(),
+        entity.postingStatus
+    )
 }
 
 interface Item {
@@ -39,7 +45,7 @@ data class StubItem(
     override val skuId: Int,
     override val qty: Int,
     override val price: BigDecimal,
-): Item
+) : Item
 
 data class OrderWithPosting(
     val order: Order,
@@ -50,22 +56,28 @@ enum class CurrencyCode {
     UNDEFINED,
     RUB,
     USD,
-    EUR
+    EUR,
+    AUD,
+    BYN;
+
+    companion object {
+        val valuesMap: Map<String, CurrencyCode> = values().associateBy { it.name }
+    }
 }
 
 data class CreateOrderRequest(
-    val postings: Collection<CreatePostingRequest>
+    val postings: Collection<CreatePostingRequest>,
 )
 
 data class CreatePostingRequest(
     val items: Collection<CreateItemsRequest>,
-    val currencyCode: CurrencyCode
+    val currencyCode: CurrencyCode,
 )
 
 data class CreateItemsRequest(
     val skuId: Int,
     val price: BigDecimal,
-    val qty: Int
+    val qty: Int,
 )
 
 data class CurrencyPrice(
@@ -76,13 +88,13 @@ data class CurrencyPrice(
 data class UpdateOrderRequest(
     val orderId: Long,
     val currency: CurrencyPrice? = null,
-    val orderStatus: OrderStatus? = null
+    val orderStatus: OrderStatus? = null,
 )
 
 data class UpdatePostingRequest(
     val postingId: Long,
-    val currency: CurrencyPrice? =  null,
-    val status: PostingStatus? = null
+    val currency: CurrencyPrice? = null,
+    val status: PostingStatus? = null,
 )
 
 enum class OrderStatus {
