@@ -62,10 +62,6 @@ class DemoCamundaApplicationIT {
         assertEquals(postingStatus, posting.postingStatus)
     }
 
-    @Test
-    fun contextLoads() {
-    }
-
     private companion object : KLogging()
 
 }

@@ -55,9 +55,9 @@ class OrderController(
                     currencyCode = easyRandom.nextObject(CurrencyCode::class.java),
                     items = IntRange(1, skuCount).map {
                         CreateItemsRequest(
-                            skuId = easyRandom.nextInt(100),
+                            skuId = 1 + easyRandom.nextInt(100),
                             price = BigDecimal(100 + easyRandom.nextInt(1000)),
-                            qty = easyRandom.nextInt(5)
+                            qty = 1 + easyRandom.nextInt(5)
                         )
                     }
                 )
@@ -65,7 +65,7 @@ class OrderController(
         ))
     }
 
-    @PostMapping("/updateStatus")
+    //    @PostMapping("/updateStatus")
     fun updateOrderStatus(orderId: Long, newStatus: OrderStatus): OrderWithPosting {
         domainService.updateOrderStatus(orderId, newStatus)
         return domainService.getOrder(orderId)
@@ -74,6 +74,6 @@ class OrderController(
 
 
 data class CreateRandomPostingRequest(
-    var postingCount: Int? = null,
-    var skuCount: Int? = null,
+    var postingCount: Int? = 3,
+    var skuCount: Int? = 3,
 )

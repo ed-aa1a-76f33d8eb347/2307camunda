@@ -43,7 +43,7 @@ class NotifyController(
         pushMessageToProcess(postingId, POSTING_RECEIVED)
     }
 
-    @PostMapping("/posting/{postingId}/canceled")
+    @PostMapping("/posting/{postingId}/cancel")
     fun markPostingCanceled(@PathVariable postingId: Long) {
         pushMessageToProcess(postingId, POSTING_CANCELLED)
     }
@@ -62,7 +62,7 @@ class NotifyController(
         }
     }
 
-    @PostMapping("/order/{orderId}/canceled")
+    @PostMapping("/order/{orderId}/cancel")
     fun cancelOrder(@PathVariable orderId: Long) {
         val businessKey = CamundaConstants.buildOrderProcessBusinessKey(orderId)
         runtimeService.createMessageCorrelation(ORDER_CANCELLED)
