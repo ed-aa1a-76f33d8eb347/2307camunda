@@ -12,6 +12,5 @@
         <appender-ref ref="STDOUT"/>
     </root>
     <logger name="ru.spb.ivsamokhvalov.example.demo.camunda" level="debug"/>
-<!--    <logger name="org.camunda.bpm" level="debug"/>-->
 
 </configuration>
