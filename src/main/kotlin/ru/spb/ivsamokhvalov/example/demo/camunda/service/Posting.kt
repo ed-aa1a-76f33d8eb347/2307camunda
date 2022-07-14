@@ -3,10 +3,10 @@ package ru.spb.ivsamokhvalov.example.demo.camunda.service
 import java.math.BigDecimal
 import mu.KLogging
 import org.springframework.stereotype.Service
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.ItemEntity
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.ItemRepository
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingEntity
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingRepository
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.ItemEntity
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.ItemRepository
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingEntity
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingRepository
 
 
 interface PostingService {

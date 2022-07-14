@@ -9,6 +9,8 @@ interface DomainService {
 
     fun getOrder(orderId: Long): OrderWithPosting
 
+    fun getPosting(postingId: Long): Posting
+
     fun updateOrderStatus(orderId: Long, orderStatus: OrderStatus)
 
     fun updatePostingStatus(postingId: Long, postingStatus: PostingStatus)
@@ -46,6 +48,8 @@ class DomainServiceImpl(
         val postings = postingService.getPostingsByOrderId(orderId)
         return OrderWithPosting(order, postings)
     }
+
+    override fun getPosting(postingId: Long) = postingService.getPosting(postingId)
 
     override fun recalculateOrderStatus(orderId: Long): OrderStatus {
         val postings = postingService.getPostingsByOrderId(orderId)

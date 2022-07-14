@@ -25,8 +25,6 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.service.UpdateOrderRequest
 @RequestMapping("/order")
 class OrderController(
     private val domainService: DomainService,
-    private val orderService: OrderService,
-    private val postingService: PostingService,
 
     ) {
 
@@ -72,7 +70,7 @@ class OrderController(
 
     @PostMapping("/updateStatus")
     fun updateOrderStatus(orderId: Long, newStatus: OrderStatus): OrderWithPosting {
-        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = newStatus))
+        domainService.updateOrderStatus(orderId, newStatus)
         return domainService.getOrder(orderId)
     }
 }

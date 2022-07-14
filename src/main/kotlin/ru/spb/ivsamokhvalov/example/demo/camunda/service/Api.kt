@@ -1,7 +1,7 @@
 package ru.spb.ivsamokhvalov.example.demo.camunda.service
 
 import java.math.BigDecimal
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingEntity
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingEntity
 
 interface Order {
     val orderId: Long
@@ -23,13 +23,16 @@ data class StubPosting(
     override val items: List<Item>,
     override val postingStatus: PostingStatus,
 ) : Posting {
-    constructor(entity: PostingEntity) : this(
+    constructor(entity: PostingEntity, items: List<Item>) : this(
         entity.postingId,
         entity.orderId,
-        CurrencyPrice(entity.price ?: BigDecimal.ZERO, entity.currency),
-        emptyList(),
+        CurrencyPrice(entity.price, entity.currency),
+        items,
         entity.postingStatus
     )
+
+    constructor(entity: PostingEntity) : this(entity, emptyList())
+
 }
 
 interface Item {

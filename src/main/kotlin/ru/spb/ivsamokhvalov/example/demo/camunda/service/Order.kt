@@ -1,8 +1,8 @@
 package ru.spb.ivsamokhvalov.example.demo.camunda.service
 
 import org.springframework.stereotype.Service
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.OrderEntity
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.OrderRepository
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderEntity
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderRepository
 
 interface OrderService {
     fun createOrder(request: CreateOrderRequest): Order

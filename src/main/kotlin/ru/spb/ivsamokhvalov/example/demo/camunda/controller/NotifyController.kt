@@ -13,13 +13,14 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_IN_DEL
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_IN_PICKUP
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_IS_PAID
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_RECEIVED
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingStatus
 
 @RestController
 @RequestMapping("/notify")
 class NotifyController(
-    private val postingService: PostingService,
+    private val domainService: DomainService,
     private val runtimeService: RuntimeService,
 ) {
 
@@ -51,7 +52,7 @@ class NotifyController(
     @PostMapping("/posting/{postingId}/nextStatus")
     fun movePostingToNextStatus(@PathVariable postingId: Long) {
         logger.debug { "postingId: $postingId" }
-        val posting = postingService.getPosting(postingId)
+        val posting = domainService.getPosting(postingId)
         when (posting.postingStatus) {
             PostingStatus.AWAITING_PAYMENT -> markPostingInProcess(postingId)
             PostingStatus.IN_PROCESS -> markPostingInDelivery(postingId)
