@@ -3,6 +3,7 @@ package ru.spb.ivsamokhvalov.example.demo.camunda.controller
 import java.math.BigDecimal
 import org.jeasy.random.EasyRandom
 import org.jeasy.random.EasyRandomParameters
+import org.jeasy.random.randomizers.misc.EnumRandomizer
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,7 +14,7 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateItemsRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateOrderRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreatePostingRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyCode
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.MainService
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderWithPosting
@@ -23,7 +24,7 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.service.UpdateOrderRequest
 @RestController
 @RequestMapping("/order")
 class OrderController(
-    private val mainService: MainService,
+    private val domainService: DomainService,
     private val orderService: OrderService,
     private val postingService: PostingService,
 
@@ -31,25 +32,33 @@ class OrderController(
 
     private val easyRandom = EasyRandom(EasyRandomParameters().also {
         it.seed = System.currentTimeMillis()
+        it.randomize(CurrencyCode::class.java, EnumRandomizer(CurrencyCode::class.java, CurrencyCode.UNDEFINED))
     })
 
     @GetMapping("/{orderId}")
     fun getOrder(@PathVariable orderId: Long): OrderWithPosting {
-        return mainService.getOrder(orderId)
+        return domainService.getOrder(orderId)
     }
+
 
     @PostMapping("/create")
     fun createOrder(@RequestBody request: CreateOrderRequest): OrderWithPosting {
-        return mainService.createOrder(request)
+        return domainService.createOrder(request)
     }
 
     @PostMapping("/createRandom")
-    fun createRandom(): OrderWithPosting {
-        return mainService.createOrder(CreateOrderRequest(
-            postings = IntRange(1, 3).map {
+    fun createRandom(@RequestBody request: CreateRandomPostingRequest?): OrderWithPosting {
+        val postingCount = request?.postingCount ?: 3
+        val skuCount = request?.skuCount ?: 3
+
+        require(postingCount > 0 && skuCount > 0) {
+            "postingCount and postingCount must me grater that 0"
+        }
+        return domainService.createOrder(CreateOrderRequest(
+            postings = IntRange(1, postingCount).map {
                 CreatePostingRequest(
                     currencyCode = easyRandom.nextObject(CurrencyCode::class.java),
-                    items = IntRange(1, 3).map {
+                    items = IntRange(1, skuCount).map {
                         CreateItemsRequest(
                             skuId = easyRandom.nextInt(100),
                             price = easyRandom.nextObject(BigDecimal::class.java),
@@ -64,6 +73,12 @@ class OrderController(
     @PostMapping("/updateStatus")
     fun updateOrderStatus(orderId: Long, newStatus: OrderStatus): OrderWithPosting {
         orderService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = newStatus))
-        return mainService.getOrder(orderId)
+        return domainService.getOrder(orderId)
     }
 }
+
+
+data class CreateRandomPostingRequest(
+    var postingCount: Int? = null,
+    var skuCount: Int? = null,
+)

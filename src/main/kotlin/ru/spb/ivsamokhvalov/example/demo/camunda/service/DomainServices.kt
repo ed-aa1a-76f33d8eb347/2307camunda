@@ -1,62 +1,108 @@
 package ru.spb.ivsamokhvalov.example.demo.camunda.service
 
-import java.math.BigDecimal
 import mu.KLogging
 import org.springframework.stereotype.Service
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.ItemEntity
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.ItemRepository
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.OrderEntity
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.OrderRepository
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingEntity
-import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingRepository
 
-interface MainService {
+interface DomainService {
+
     fun createOrder(request: CreateOrderRequest): OrderWithPosting
+
     fun getOrder(orderId: Long): OrderWithPosting
 
-//    fun updateOrder(request: UpdateOrderRequest): Order
+    fun updateOrderStatus(orderId: Long, orderStatus: OrderStatus)
 
-    fun recalculateOrderStatus(orderId: Long)
+    fun updatePostingStatus(postingId: Long, postingStatus: PostingStatus)
+
+    fun recalculateOrderStatus(orderId: Long): OrderStatus
 
     fun recalculateOrderPrice(orderId: Long)
+
+    fun recalculatePostingPrice(postingId: Long)
+
+    fun cancelPosting(postingId: Long)
 }
 
 
-
 @Service
-class MainServiceImpl(
+class DomainServiceImpl(
     private val orderService: OrderService,
     private val postingService: PostingService,
-) : MainService {
+    private val camundaService: CamundaService,
+    private val currenciesConverter: CurrenciesConverterService,
+) : DomainService {
     override fun createOrder(request: CreateOrderRequest): OrderWithPosting {
         val order = orderService.createOrder(request)
         postingService.createPostings(order.orderId, request.postings)
-        return getOrder(order.orderId)
+        val result = getOrder(order.orderId)
+        result.postings.onEach {
+            camundaService.startPostingProcess(it)
+        }
+        camundaService.startOrderProcess(result.order)
+        return result
     }
 
     override fun getOrder(orderId: Long): OrderWithPosting {
         val order = orderService.getOrder(orderId)
-        val postings = postingService.getPostingByOrderId(orderId)
+        val postings = postingService.getPostingsByOrderId(orderId)
         return OrderWithPosting(order, postings)
     }
 
-    override fun recalculateOrderStatus(orderId: Long) {
-        val order = orderService.getOrder(orderId)
-        val postings = postingService.getPostingByOrderId(orderId)
-        val newStatus: OrderStatus = calculateOrderStatus(postings)
-        if (newStatus == order.orderStatus) return
-        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = newStatus))
+    override fun recalculateOrderStatus(orderId: Long): OrderStatus {
+        val postings = postingService.getPostingsByOrderId(orderId)
+        val result = calculateOrderStatus(postings)
+        logger.debug { "newStatus: $result, postingStatuses: ${postings.map { it.postingStatus }}" }
+        return result
     }
 
     override fun recalculateOrderPrice(orderId: Long) {
-        val order = orderService.getOrder(orderId)
-        val postings = postingService.getPostingByOrderId(orderId)
-        val distinctCurrencies = postings.filter { it.postingStatus != PostingStatus.CANCELLED }.map { it.currency.currency }.distinct()
-        require(distinctCurrencies.size == 1) {
+        val postings = postingService.getPostingsByOrderId(orderId)
+        val distinctCurrencies =
+            postings.filter { it.postingStatus != PostingStatus.CANCELLED }.map { it.currency.currency }.distinct()
+        require(distinctCurrencies.size <= 1) {
             "Перед пересчетом стоимости заказа, все валюты постингов должны быть сделаны одинаковыми"
         }
         val orderPrice = postings.filter { it.postingStatus != PostingStatus.CANCELLED }.sumOf { it.currency.price }
-        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, currency = CurrencyPrice(orderPrice, distinctCurrencies.single())))
+        orderService.updateOrder(
+            UpdateOrderRequest(
+                orderId = orderId,
+                currency = CurrencyPrice(orderPrice, distinctCurrencies.singleOrNull() ?: CurrencyCode.UNDEFINED)
+            )
+        )
+    }
+
+    override fun recalculatePostingPrice(postingId: Long) {
+        val posting = postingService.getPosting(postingId)
+        val originalPrice = posting.currency
+        val convertedPrice = currenciesConverter.convertToDefault(originalPrice)
+        if (convertedPrice == originalPrice) {
+            logger.info { "Nothing to change for posting: $posting" }
+            return
+        }
+        postingService.updatePosting(UpdatePostingRequest(postingId = postingId, currency = convertedPrice))
+
+    }
+
+    override fun cancelPosting(postingId: Long) {
+        val posting = postingService.getPosting(postingId)
+        if (posting.postingStatus == PostingStatus.CANCELLED) return
+        postingService.updatePosting(
+            UpdatePostingRequest(
+                postingId = postingId,
+                postingStatus = PostingStatus.CANCELLED
+            )
+        )
+    }
+
+    override fun updateOrderStatus(orderId: Long, orderStatus: OrderStatus) {
+        val order = orderService.getOrder(orderId)
+        if (order.orderStatus == orderStatus) return
+        orderService.updateOrder(UpdateOrderRequest(orderId = orderId, orderStatus = orderStatus))
+    }
+
+    override fun updatePostingStatus(postingId: Long, postingStatus: PostingStatus) {
+        val posting = postingService.getPosting(postingId)
+        if (posting.postingStatus == postingStatus) return
+        postingService.updatePosting(UpdatePostingRequest(postingId = postingId, postingStatus = postingStatus))
     }
 
     private fun calculateOrderStatus(postings: List<Posting>): OrderStatus {
@@ -72,4 +118,6 @@ class MainServiceImpl(
             else -> throw IllegalArgumentException("Невозможно высчитать статус ордера")
         }
     }
+
+    private companion object : KLogging()
 }

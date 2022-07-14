@@ -10,9 +10,8 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.controller.PostingRepository
 
 
 interface PostingService {
-    fun recalculatePostingPrice(postingId: Long)
     fun getPosting(postingId: Long): Posting
-    fun getPostingByOrderId(orderId: Long): List<Posting>
+    fun getPostingsByOrderId(orderId: Long): List<Posting>
     fun createPostings(orderId: Long, postings: Collection<CreatePostingRequest>)
     fun updatePosting(request: UpdatePostingRequest): Posting
 }
@@ -21,24 +20,8 @@ interface PostingService {
 @Service
 class PostingServiceImpl(
     private val postingRepository: PostingRepository,
-    private val currenciesConverter: CurrenciesConverterService,
     private val itemRepository: ItemRepository,
 ) : PostingService {
-
-    override fun recalculatePostingPrice(postingId: Long) {
-        val posting = postingRepository.findById(postingId).get()
-        val originalPrice = CurrencyPrice(posting.price, posting.currency)
-        val convertedPrice = currenciesConverter.convertToDefault(originalPrice)
-        if (convertedPrice == originalPrice) {
-            logger.info { "Nothing to change for posting: $posting" }
-            return
-        }
-
-        postingRepository.save(posting.also {
-            it.price = convertedPrice.price
-            it.currency = convertedPrice.currency
-        })
-    }
 
     override fun getPosting(postingId: Long): Posting {
         val posting = postingRepository.findById(postingId).get()
@@ -80,13 +63,13 @@ class PostingServiceImpl(
         }
     }
 
-    override fun getPostingByOrderId(orderId: Long): List<Posting> {
+    override fun getPostingsByOrderId(orderId: Long): List<Posting> {
         return postingRepository.findByOrderIdOrderByPostingIdAsc(orderId).map { getPosting(it.postingId) }
     }
 
     override fun updatePosting(request: UpdatePostingRequest): Posting {
         val posting = postingRepository.findById(request.postingId).get()
-        request.status?.let { newStatus ->
+        request.postingStatus?.let { newStatus ->
             posting.postingStatus = newStatus
         }
         request.currency?.let { newPrice ->

@@ -99,6 +99,8 @@ class CurrencyPrice(
         result = 31 * result + currency.hashCode()
         return result
     }
+
+    override fun toString() = "CurrencyPrice(price: $price, currency: $currency)"
 }
 
 
@@ -111,7 +113,7 @@ data class UpdateOrderRequest(
 data class UpdatePostingRequest(
     val postingId: Long,
     val currency: CurrencyPrice? = null,
-    val status: PostingStatus? = null,
+    val postingStatus: PostingStatus? = null,
 )
 
 enum class OrderStatus {

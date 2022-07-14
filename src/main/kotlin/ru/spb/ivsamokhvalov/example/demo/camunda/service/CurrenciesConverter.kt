@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import mu.KLogging
@@ -24,23 +23,30 @@ interface CurrenciesConverterService {
 
 @Service
 class CurrenciesConverterServiceImpl(
-    private val cbrAdapter: CBRAdapter
+    private val cbrAdapter: CBRAdapter,
 ) : CurrenciesConverterService {
 
     @Value("\${currency.defaultCode}")
     private lateinit var defaultCurrency: CurrencyCode
 
     override fun convert(from: CurrencyPrice, to: CurrencyCode): CurrencyPrice {
-        val currencies = cbrAdapter.getAllValutes()
-        val fromCurrency = currencies[from.currency]!!
-        val inRubPrice = from.price * fromCurrency.price
-        if (to == CurrencyCode.RUB) return CurrencyPrice(inRubPrice, CurrencyCode.RUB)
-        val toCurrency = currencies[to]!!
-        val toPrice = inRubPrice.divide(toCurrency.price, 4, RoundingMode.CEILING)
-        return CurrencyPrice(toPrice, to)
+        return try {
+            val currencies = cbrAdapter.getAllValutes()
+            val fromCurrency = currencies[from.currency]!!
+            val inRubPrice = from.price * fromCurrency.price
+            if (to == CurrencyCode.RUB) return CurrencyPrice(inRubPrice, CurrencyCode.RUB)
+            val toCurrency = currencies[to]!!
+            val toPrice = inRubPrice.divide(toCurrency.price, 4, RoundingMode.CEILING)
+            CurrencyPrice(toPrice, to)
+        } catch (e: Exception) {
+            logger.error(e) { "Exception on convert! from:$from, to: $to" }
+            throw e
+        }
     }
 
     override fun convertToDefault(from: CurrencyPrice) = convert(from, defaultCurrency)
+
+    private companion object : KLogging()
 }
 
 interface CBRAdapter {
@@ -69,7 +75,7 @@ class CBRAdapterImpl : CBRAdapter {
             false -> getRealValues()
         }
         val parsedValue = mapper.readValue(stream, RootValCus::class.java)
-        val result = parsedValue.valutes
+        val result = (parsedValue.valutes
             .filter { it.charCode in CurrencyCode.valuesMap.keys }
             .map {
                 val currencyCode = CurrencyCode.valueOf(it.charCode)
@@ -79,7 +85,7 @@ class CBRAdapterImpl : CBRAdapter {
                     it.convertedNominal
                 }
                 CurrencyPrice(price, currencyCode)
-            }.associateBy { it.currency }
+            } + CurrencyPrice(BigDecimal.ONE, CurrencyCode.RUB)).associateBy { it.currency }
         logger.info { "UseMock: ${useMock}, Load currencies for: ${result.keys.map { it.name }.sorted()}" }
         return result
     }

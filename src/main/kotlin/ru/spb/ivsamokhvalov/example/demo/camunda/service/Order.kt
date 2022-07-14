@@ -15,9 +15,9 @@ class OrderServiceImpl(
     private val orderRepository: OrderRepository,
 ) : OrderService {
 
-    override fun createOrder(request: CreateOrderRequest) : Order = orderRepository.save(OrderEntity())
+    override fun createOrder(request: CreateOrderRequest): Order = orderRepository.save(OrderEntity())
 
-    override fun getOrder(orderId: Long): Order  = orderRepository.findById(orderId).get()
+    override fun getOrder(orderId: Long): Order = orderRepository.findById(orderId).get()
 
     override fun updateOrder(request: UpdateOrderRequest): Order {
         val order = orderRepository.findById(request.orderId).get()

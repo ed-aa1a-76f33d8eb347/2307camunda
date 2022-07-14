@@ -4,3 +4,6 @@ springdoc:
 currency:
   defaultCode: USD
   mock: true
+timeout:
+  awaitingPayment: PT1M
+  awaitingReceived: PT1M
