@@ -13,9 +13,8 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_IN_DEL
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_IN_PICKUP
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_IS_PAID
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_RECEIVED
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingService
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingStatus
 
 @RestController
 @RequestMapping("/notify")

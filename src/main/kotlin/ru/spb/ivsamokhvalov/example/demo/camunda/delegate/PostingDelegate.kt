@@ -9,8 +9,8 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_ID
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_STATUS
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.RECALCULATE_ORDER_STATUS
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.buildOrderProcessBusinessKey
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingStatus
 
 
 @Component("recalculateCurrencyDelegate")

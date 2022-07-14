@@ -7,9 +7,8 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import org.springframework.data.repository.CrudRepository
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyCode
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.Item
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.Order
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderStatus
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingStatus
 
 interface OrderRepository : CrudRepository<OrderEntity, Long>
 interface PostingRepository : CrudRepository<PostingEntity, Long> {
@@ -47,9 +46,27 @@ data class PostingEntity(
 data class ItemEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "items_seq")
-    var itemId: Long = 0,
+    override var itemId: Long = 0,
     val postingId: Long,
-    val skuId: Int,
-    val qty: Int,
-    val price: BigDecimal,
-)
+    override val skuId: Int,
+    override val qty: Int,
+    override val price: BigDecimal,
+) : Item
+
+enum class OrderStatus {
+    CREATED,
+    IN_PROCESS,
+    IN_DELIVERY,
+    AWAITING_IN_PICKUP,
+    RECEIVED,
+    CANCELLED
+}
+
+enum class PostingStatus {
+    AWAITING_PAYMENT,
+    IN_PROCESS,
+    IN_DELIVERY,
+    AWAITING_IN_PICKUP,
+    RECEIVED,
+    CANCELLED
+}

@@ -26,7 +26,7 @@ class PostingServiceImpl(
     override fun getPosting(postingId: Long): Posting {
         val posting = postingRepository.findById(postingId).get()
 
-        return StubPosting(
+        return PostingDto(
             postingId = posting.postingId,
             orderId = posting.orderId,
             items = getItemsByPostingId(posting.postingId),
@@ -35,10 +35,7 @@ class PostingServiceImpl(
         )
     }
 
-    fun getItemsByPostingId(postingId: Long): List<Item> {
-        val items = itemRepository.findByPostingIdOrderByItemIdAsc(postingId)
-        return items.map { StubItem(itemId = it.itemId, skuId = it.skuId, qty = it.qty, price = it.price) }
-    }
+    fun getItemsByPostingId(postingId: Long): List<Item> = itemRepository.findByPostingIdOrderByItemIdAsc(postingId)
 
     override fun createPostings(orderId: Long, postings: Collection<CreatePostingRequest>) {
         postings.onEach {
@@ -76,7 +73,7 @@ class PostingServiceImpl(
             posting.currency = newPrice.currency
             posting.price = newPrice.price
         }
-        return StubPosting(postingRepository.save(posting))
+        return PostingDto(postingRepository.save(posting))
     }
 
 

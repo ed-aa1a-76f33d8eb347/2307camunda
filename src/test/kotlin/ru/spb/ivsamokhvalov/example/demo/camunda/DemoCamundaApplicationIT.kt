@@ -8,8 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import ru.spb.ivsamokhvalov.example.demo.camunda.controller.CreateRandomPostingRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.controller.NotifyController
 import ru.spb.ivsamokhvalov.example.demo.camunda.controller.OrderController
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderStatus
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.PostingStatus
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderStatus
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingStatus
 
 @SpringBootTest
 class DemoCamundaApplicationIT {

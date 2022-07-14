@@ -1,4 +1,4 @@
-package ru.spb.ivsamokhvalov.example.demo.camunda.service
+package ru.spb.ivsamokhvalov.example.demo.camunda
 
 import org.camunda.bpm.engine.RuntimeService
 import org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration
@@ -11,7 +11,6 @@ import org.camunda.bpm.extension.mockito.DelegateExpressions.autoMock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants.POSTING_PROCESS_KEY
 import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingEntity
 

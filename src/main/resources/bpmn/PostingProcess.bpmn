@@ -107,11 +107,7 @@
         <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${awaitingReceived}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
-    <bpmn:subProcess id="Activity_04byo34" triggeredByEvent="true">
-      <bpmn:startEvent id="Event_1kq5yms">
-        <bpmn:outgoing>Flow_13cee1n</bpmn:outgoing>
-        <bpmn:messageEventDefinition id="MessageEventDefinition_08y7obs" messageRef="Message_3tdac03" />
-      </bpmn:startEvent>
+    <bpmn:subProcess id="Activity_04byo34" name="Обработка сообщения об отмене" triggeredByEvent="true">
       <bpmn:serviceTask id="Activity_10a9d55" name="Изменить статус постиинга на &#34;Отменен&#34;" camunda:delegateExpression="${changePostingStatusDelegate}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -128,6 +124,10 @@
         <bpmn:terminateEventDefinition id="TerminateEventDefinition_0rl34kr" />
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="Flow_03indy2" sourceRef="Activity_10a9d55" targetRef="Event_02beec4" />
+      <bpmn:startEvent id="Event_1kq5yms">
+        <bpmn:outgoing>Flow_13cee1n</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_08y7obs" messageRef="Message_3tdac03" />
+      </bpmn:startEvent>
     </bpmn:subProcess>
     <bpmn:endEvent id="Event_1twmt9n">
       <bpmn:incoming>Flow_18u764r</bpmn:incoming>
@@ -272,6 +272,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0pgrmz2_di" bpmnElement="Activity_04byo34" isExpanded="true">
         <dc:Bounds x="340" y="640" width="468" height="200" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_03indy2_di" bpmnElement="Flow_03indy2">
         <di:waypoint x="620" y="740" />

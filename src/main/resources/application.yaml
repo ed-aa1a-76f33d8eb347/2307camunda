@@ -3,7 +3,7 @@ springdoc:
     path: /docs
 currency:
   defaultCode: USD
-  mock: true
+  mock: false
 timeout:
   awaitingPayment: PT1M
   awaitingReceived: PT1M

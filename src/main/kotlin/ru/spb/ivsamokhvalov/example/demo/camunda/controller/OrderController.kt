@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateItemsRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateOrderRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreatePostingRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyCode
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderWithPosting
 
 @RestController

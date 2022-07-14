@@ -2,6 +2,8 @@ package ru.spb.ivsamokhvalov.example.demo.camunda.service
 
 import mu.KLogging
 import org.springframework.stereotype.Service
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderStatus
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingStatus
 
 interface DomainService {
 

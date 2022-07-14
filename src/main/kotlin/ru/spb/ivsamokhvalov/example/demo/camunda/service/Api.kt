@@ -1,7 +1,9 @@
 package ru.spb.ivsamokhvalov.example.demo.camunda.service
 
 import java.math.BigDecimal
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingEntity
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.PostingStatus
 
 interface Order {
     val orderId: Long
@@ -16,7 +18,7 @@ interface Posting {
     val postingStatus: PostingStatus
 }
 
-data class StubPosting(
+data class PostingDto(
     override val postingId: Long,
     override val orderId: Long,
     override val currency: CurrencyPrice,
@@ -42,13 +44,6 @@ interface Item {
     val price: BigDecimal
 
 }
-
-data class StubItem(
-    override val itemId: Long?,
-    override val skuId: Int,
-    override val qty: Int,
-    override val price: BigDecimal,
-) : Item
 
 data class OrderWithPosting(
     val order: Order,
@@ -118,21 +113,3 @@ data class UpdatePostingRequest(
     val currency: CurrencyPrice? = null,
     val postingStatus: PostingStatus? = null,
 )
-
-enum class OrderStatus {
-    CREATED,
-    IN_PROCESS,
-    IN_DELIVERY,
-    AWAITING_IN_PICKUP,
-    RECEIVED,
-    CANCELLED
-}
-
-enum class PostingStatus {
-    AWAITING_PAYMENT,
-    IN_PROCESS,
-    IN_DELIVERY,
-    AWAITING_IN_PICKUP,
-    RECEIVED,
-    CANCELLED
-}

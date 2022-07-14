@@ -6,8 +6,8 @@ import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.bpm.engine.delegate.JavaDelegate
 import org.springframework.stereotype.Component
 import ru.spb.ivsamokhvalov.example.demo.camunda.CamundaConstants
+import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderStatus
 
 @Component("recalculateOrderStatusDelegate")
 class RecalculateOrderStatusDelegate(
