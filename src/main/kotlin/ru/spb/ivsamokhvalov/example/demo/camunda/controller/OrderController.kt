@@ -3,7 +3,6 @@ package ru.spb.ivsamokhvalov.example.demo.camunda.controller
 import java.math.BigDecimal
 import org.jeasy.random.EasyRandom
 import org.jeasy.random.EasyRandomParameters
-import org.jeasy.random.randomizers.misc.EnumRandomizer
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,7 +13,7 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.repo.OrderStatus
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateItemsRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreateOrderRequest
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CreatePostingRequest
-import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyCode
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrenciesConverterService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.DomainService
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderWithPosting
 
@@ -22,12 +21,12 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.service.OrderWithPosting
 @RequestMapping("/order")
 class OrderController(
     private val domainService: DomainService,
+    private val converterService: CurrenciesConverterService,
 
     ) {
 
     private val easyRandom = EasyRandom(EasyRandomParameters().also {
         it.seed = System.currentTimeMillis()
-        it.randomize(CurrencyCode::class.java, EnumRandomizer(CurrencyCode::class.java, CurrencyCode.UNDEFINED))
     })
 
     @GetMapping("/{orderId}")
@@ -49,10 +48,11 @@ class OrderController(
         require(postingCount > 0 && skuCount > 0) {
             "postingCount and postingCount must me grater that 0"
         }
+        val allCodes = converterService.getAllCurrencyCodes().toList()
         return domainService.createOrder(CreateOrderRequest(
             postings = IntRange(1, postingCount).map {
                 CreatePostingRequest(
-                    currencyCode = easyRandom.nextObject(CurrencyCode::class.java),
+                    currencyCode = allCodes[easyRandom.nextInt(allCodes.size)],
                     items = IntRange(1, skuCount).map {
                         CreateItemsRequest(
                             skuId = 1 + easyRandom.nextInt(100),

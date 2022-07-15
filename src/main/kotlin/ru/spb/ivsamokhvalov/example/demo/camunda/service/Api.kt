@@ -53,15 +53,8 @@ data class OrderWithPosting(
 
 enum class CurrencyCode {
     UNDEFINED,
-    RUB,
-    USD,
-    EUR,
-    AUD,
-    BYN;
+    RUB;
 
-    companion object {
-        val valuesMap: Map<String, CurrencyCode> = values().associateBy { it.name }
-    }
 }
 
 data class CreateOrderRequest(
@@ -70,7 +63,7 @@ data class CreateOrderRequest(
 
 data class CreatePostingRequest(
     val items: Collection<CreateItemsRequest>,
-    val currencyCode: CurrencyCode,
+    val currencyCode: String,
 )
 
 data class CreateItemsRequest(
@@ -81,7 +74,7 @@ data class CreateItemsRequest(
 
 class CurrencyPrice(
     val price: BigDecimal,
-    val currency: CurrencyCode,
+    val currency: String,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -119,4 +112,4 @@ data class UpdateItemRequest(
     val itemId: Long,
     val currency: CurrencyPrice? = null,
 
-)
+    )

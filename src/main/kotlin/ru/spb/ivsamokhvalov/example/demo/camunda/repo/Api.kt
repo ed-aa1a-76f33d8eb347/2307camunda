@@ -27,7 +27,7 @@ data class OrderEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "orders_seq")
     override var orderId: Long = 0,
     override var orderStatus: OrderStatus = OrderStatus.CREATED,
-    var currency: CurrencyCode = CurrencyCode.UNDEFINED,
+    var currency: String = CurrencyCode.UNDEFINED.name,
     var price: BigDecimal = BigDecimal.ZERO,
 
     ) : Order
@@ -39,7 +39,7 @@ data class PostingEntity(
     var postingId: Long = 0,
     val orderId: Long,
     var postingStatus: PostingStatus = PostingStatus.AWAITING_PAYMENT,
-    var currency: CurrencyCode = CurrencyCode.UNDEFINED,
+    var currency: String = CurrencyCode.UNDEFINED.name,
     var price: BigDecimal = BigDecimal.ZERO,
 )
 
@@ -52,9 +52,9 @@ data class ItemEntity(
     override val skuId: Int,
     override val qty: Int,
     private val _originalPrice: BigDecimal,
-    private val _originalCurrency: CurrencyCode,
+    private val _originalCurrency: String,
     var _price: BigDecimal = BigDecimal.ZERO,
-    var _currency: CurrencyCode = CurrencyCode.UNDEFINED,
+    var _currency: String = CurrencyCode.UNDEFINED.name,
 ) : Item {
 
     override val originalPrice: CurrencyPrice

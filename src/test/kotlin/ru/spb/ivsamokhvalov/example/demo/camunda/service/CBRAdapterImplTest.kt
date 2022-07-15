@@ -29,9 +29,9 @@ internal class CBRAdapterImplTest {
 
 
     @Test
-     fun testCompareBigDecimal() {
-        val a = CurrencyPrice(BigDecimal("2"), CurrencyCode.RUB)
-        val b = CurrencyPrice(BigDecimal("2.0"), CurrencyCode.RUB)
+    fun testCompareBigDecimal() {
+        val a = CurrencyPrice(BigDecimal("2"), CurrencyCode.RUB.name)
+        val b = CurrencyPrice(BigDecimal("2.0"), CurrencyCode.RUB.name)
         println(a == b)
         println(a.price.compareTo(b.price))
     }

@@ -5,7 +5,7 @@ import ru.spb.ivsamokhvalov.example.demo.camunda.repo.ItemEntity
 import ru.spb.ivsamokhvalov.example.demo.camunda.repo.ItemRepository
 
 interface PostingItemService {
-    fun createPostingItems(postingId: Long, currency: CurrencyCode, items: Collection<CreateItemsRequest>)
+    fun createPostingItems(postingId: Long, currency: String, items: Collection<CreateItemsRequest>)
     fun getItemByPostingId(postingId: Long): List<Item>
     fun updateItem(request: UpdateItemRequest)
 }
@@ -15,7 +15,7 @@ class PostingItemServiceImpl(
     private val itemRepository: ItemRepository,
 ) : PostingItemService {
 
-    override fun createPostingItems(postingId: Long, currency: CurrencyCode, items: Collection<CreateItemsRequest>) {
+    override fun createPostingItems(postingId: Long, currency: String, items: Collection<CreateItemsRequest>) {
         items.onEach { item ->
             itemRepository.save(
                 ItemEntity(

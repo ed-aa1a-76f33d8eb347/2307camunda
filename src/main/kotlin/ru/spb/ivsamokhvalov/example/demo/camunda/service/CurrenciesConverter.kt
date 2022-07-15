@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service
 
 interface CurrenciesConverterService {
 
-    fun convert(from: CurrencyPrice, to: CurrencyCode): CurrencyPrice
+    fun convert(from: CurrencyPrice, to: String): CurrencyPrice
     fun convertToDefault(from: CurrencyPrice): CurrencyPrice
+
+    fun getAllCurrencyCodes(): Set<String>
 }
 
 
@@ -27,14 +29,14 @@ class CurrenciesConverterServiceImpl(
 ) : CurrenciesConverterService {
 
     @Value("\${currency.defaultCode}")
-    private lateinit var defaultCurrency: CurrencyCode
+    private lateinit var defaultCurrency: String
 
-    override fun convert(from: CurrencyPrice, to: CurrencyCode): CurrencyPrice {
+    override fun convert(from: CurrencyPrice, to: String): CurrencyPrice {
         return try {
             val currencies = cbrAdapter.getAllValutes()
             val fromCurrency = currencies[from.currency]!!
             val inRubPrice = from.price * fromCurrency.price
-            if (to == CurrencyCode.RUB) return CurrencyPrice(inRubPrice, CurrencyCode.RUB)
+            if (to == CurrencyCode.RUB.name) return CurrencyPrice(inRubPrice, CurrencyCode.RUB.name)
             val toCurrency = currencies[to]!!
             val toPrice = inRubPrice.divide(toCurrency.price, 4, RoundingMode.CEILING)
             CurrencyPrice(toPrice, to)
@@ -46,13 +48,15 @@ class CurrenciesConverterServiceImpl(
 
     override fun convertToDefault(from: CurrencyPrice) = convert(from, defaultCurrency)
 
+    override fun getAllCurrencyCodes(): Set<String> = cbrAdapter.getAllValutes().keys
+
     private companion object : KLogging()
 }
 
 interface CBRAdapter {
 
     @Cacheable("valutes")
-    fun getAllValutes(): Map<CurrencyCode, CurrencyPrice>
+    fun getAllValutes(): Map<String, CurrencyPrice>
 }
 
 @Service
@@ -69,24 +73,23 @@ class CBRAdapterImpl : CBRAdapter {
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 
-    override fun getAllValutes(): Map<CurrencyCode, CurrencyPrice> {
+    override fun getAllValutes(): Map<String, CurrencyPrice> {
         val stream = when (useMock) {
             true -> getMockValues()
             false -> getRealValues()
         }
         val parsedValue = mapper.readValue(stream, RootValCus::class.java)
         val result = (parsedValue.valutes
-            .filter { it.charCode in CurrencyCode.valuesMap.keys }
             .map {
-                val currencyCode = CurrencyCode.valueOf(it.charCode)
+                val currencyCode = it.charCode
                 val price = if (BigDecimal.ONE.compareTo(it.convertedNominal) != 0) {
                     it.convertedNominal.divide(it.nominal.toBigDecimal())
                 } else {
                     it.convertedNominal
                 }
                 CurrencyPrice(price, currencyCode)
-            } + CurrencyPrice(BigDecimal.ONE, CurrencyCode.RUB)).associateBy { it.currency }
-        logger.info { "UseMock: ${useMock}, Load currencies for: ${result.keys.map { it.name }.sorted()}" }
+            } + CurrencyPrice(BigDecimal.ONE, CurrencyCode.RUB.name)).associateBy { it.currency }
+        logger.info { "UseMock: ${useMock}, Load currencies for: ${result.keys}" }
         return result
     }
 

@@ -37,6 +37,10 @@ class DomainServiceImpl(
 ) : DomainService {
     override fun createOrder(request: CreateOrderRequest): OrderWithPosting {
         val order = orderService.createOrder(request)
+        val allCodes = currenciesConverter.getAllCurrencyCodes()
+        require(request.postings.all { it.currencyCode in allCodes }) {
+            "Валюта даолжна быть из списка: ${allCodes.sorted()}"
+        }
         postingService.createPostings(order.orderId, request.postings)
         val result = getOrder(order.orderId)
         result.postings.onEach {
@@ -72,7 +76,7 @@ class DomainServiceImpl(
         orderService.updateOrder(
             UpdateOrderRequest(
                 orderId = orderId,
-                currency = CurrencyPrice(orderPrice, distinctCurrencies.singleOrNull() ?: CurrencyCode.UNDEFINED)
+                currency = CurrencyPrice(orderPrice, distinctCurrencies.singleOrNull() ?: CurrencyCode.UNDEFINED.name)
             )
         )
     }
