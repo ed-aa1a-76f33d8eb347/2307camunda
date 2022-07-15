@@ -7,6 +7,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import org.springframework.data.repository.CrudRepository
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyCode
+import ru.spb.ivsamokhvalov.example.demo.camunda.service.CurrencyPrice
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.Item
 import ru.spb.ivsamokhvalov.example.demo.camunda.service.Order
 
@@ -50,8 +51,17 @@ data class ItemEntity(
     val postingId: Long,
     override val skuId: Int,
     override val qty: Int,
-    override val price: BigDecimal,
-) : Item
+    private val _originalPrice: BigDecimal,
+    private val _originalCurrency: CurrencyCode,
+    var _price: BigDecimal = BigDecimal.ZERO,
+    var _currency: CurrencyCode = CurrencyCode.UNDEFINED,
+) : Item {
+
+    override val originalPrice: CurrencyPrice
+        get() = CurrencyPrice(_originalPrice, _originalCurrency)
+    override val price: CurrencyPrice
+        get() = CurrencyPrice(_price, _currency)
+}
 
 enum class OrderStatus {
     CREATED,

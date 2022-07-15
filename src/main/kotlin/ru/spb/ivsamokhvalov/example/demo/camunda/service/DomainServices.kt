@@ -31,6 +31,7 @@ interface DomainService {
 class DomainServiceImpl(
     private val orderService: OrderService,
     private val postingService: PostingService,
+    private val itemService: PostingItemService,
     private val camundaService: CamundaService,
     private val currenciesConverter: CurrenciesConverterService,
 ) : DomainService {
@@ -78,6 +79,10 @@ class DomainServiceImpl(
 
     override fun recalculatePostingPrice(postingId: Long) {
         val posting = postingService.getPosting(postingId)
+        posting.items.onEach { item ->
+            val convertedPrice = currenciesConverter.convertToDefault(item.originalPrice)
+            itemService.updateItem(UpdateItemRequest(itemId = item.itemId, currency = convertedPrice))
+        }
         val originalPrice = posting.currency
         val convertedPrice = currenciesConverter.convertToDefault(originalPrice)
         if (convertedPrice == originalPrice) {

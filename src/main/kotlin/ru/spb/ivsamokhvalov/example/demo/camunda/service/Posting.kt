@@ -20,7 +20,7 @@ interface PostingService {
 @Service
 class PostingServiceImpl(
     private val postingRepository: PostingRepository,
-    private val itemRepository: ItemRepository,
+    private val itemService: PostingItemService,
 ) : PostingService {
 
     override fun getPosting(postingId: Long): Posting {
@@ -29,13 +29,11 @@ class PostingServiceImpl(
         return PostingDto(
             postingId = posting.postingId,
             orderId = posting.orderId,
-            items = getItemsByPostingId(posting.postingId),
+            items = itemService.getItemByPostingId(posting.postingId),
             currency = CurrencyPrice(posting.price, posting.currency),
             postingStatus = posting.postingStatus
         )
     }
-
-    fun getItemsByPostingId(postingId: Long): List<Item> = itemRepository.findByPostingIdOrderByItemIdAsc(postingId)
 
     override fun createPostings(orderId: Long, postings: Collection<CreatePostingRequest>) {
         postings.onEach {
@@ -47,16 +45,7 @@ class PostingServiceImpl(
                     currency = it.currencyCode
                 )
             )
-            it.items.onEach { p ->
-                itemRepository.save(
-                    ItemEntity(
-                        skuId = p.skuId,
-                        qty = p.qty,
-                        price = p.price,
-                        postingId = posting.postingId
-                    )
-                )
-            }
+            itemService.createPostingItems(posting.postingId, it.currencyCode, it.items)
         }
     }
 

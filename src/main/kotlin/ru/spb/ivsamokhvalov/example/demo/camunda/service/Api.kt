@@ -38,10 +38,11 @@ data class PostingDto(
 }
 
 interface Item {
-    val itemId: Long?
+    val itemId: Long
     val skuId: Int
     val qty: Int
-    val price: BigDecimal
+    val originalPrice: CurrencyPrice
+    val price: CurrencyPrice
 
 }
 
@@ -112,4 +113,10 @@ data class UpdatePostingRequest(
     val postingId: Long,
     val currency: CurrencyPrice? = null,
     val postingStatus: PostingStatus? = null,
+)
+
+data class UpdateItemRequest(
+    val itemId: Long,
+    val currency: CurrencyPrice? = null,
+
 )
